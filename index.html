@@ -1,137 +1,186 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Tracking Eyes</title>
-
-<style>
-body{
-  margin:0;
-  background:black;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-
-.eye{
-  width:200px;
-  height:200px;
-  background:white;
-  border-radius:50%;
-  position:relative;
-  margin:40px;
-}
-
-.pupil{
-  width:80px;
-  height:80px;
-  background:black;
-  border-radius:50%;
-  position:absolute;
-  top:60px;
-  left:60px;
-  transition: transform 0.05s linear;
-}
-</style>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Eyes Follow You (Camera Tracking)</title>
+  <style>
+    body{
+      margin:0; min-height:100vh;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      background:#111; color:#eee; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      gap:16px;
+    }
+    .wrap{ display:flex; gap:24px; }
+    .eye{
+      width:140px; height:140px; border-radius:50%;
+      background:#f7f7f7;
+      display:flex; align-items:center; justify-content:center;
+      position:relative;
+      box-shadow: 0 8px 20px rgba(0,0,0,.35);
+      overflow:hidden;
+    }
+    .pupil{
+      width:44px; height:44px; border-radius:50%;
+      background:#111;
+      transform: translate(0px, 0px);
+      transition: transform 60ms linear;
+    }
+    .gloss{
+      position:absolute; width:34px; height:34px; border-radius:50%;
+      background:rgba(255,255,255,.55);
+      top:22px; left:32px;
+      filter: blur(.2px);
+    }
+    .ui{
+      width:min(560px, 92vw);
+      display:flex; flex-direction:column; gap:10px;
+      align-items:stretch;
+    }
+    button{
+      padding:12px 14px;
+      border-radius:12px;
+      border:0;
+      background:#2b6cff;
+      color:white;
+      font-weight:600;
+      font-size:16px;
+    }
+    .note{
+      font-size:14px;
+      line-height:1.25;
+      opacity:.85;
+    }
+    video{
+      width:min(560px, 92vw);
+      border-radius:16px;
+      background:#000;
+      display:none; /* flip to block if you want the live preview */
+    }
+    .pill{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      font-size:13px;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="eye">
-  <div class="pupil"></div>
-</div>
+  <div class="wrap" id="eyes">
+    <div class="eye"><div class="gloss"></div><div class="pupil"></div></div>
+    <div class="eye"><div class="gloss"></div><div class="pupil"></div></div>
+  </div>
 
-<div class="eye">
-  <div class="pupil"></div>
-</div>
+  <div class="ui">
+    <button id="startBtn">Start camera tracking</button>
+    <div class="note">
+      <span class="pill" id="status">Status: idle</span>
+      <div style="height:8px"></div>
+      If it says FaceDetector unsupported on your browser, tell me what iPhone/iPad + browser you’re using and I’ll swap you to a library-based tracker that works on iOS.
+    </div>
+  </div>
 
+  <video id="cam" autoplay playsinline muted></video>
 
 <script>
+  const statusEl = document.getElementById("status");
+  const startBtn = document.getElementById("startBtn");
+  const video = document.getElementById("cam");
+  const eyes = [...document.querySelectorAll(".eye")];
 
-const eyes = document.querySelectorAll(".eye")
+  function setStatus(t){ statusEl.textContent = "Status: " + t; }
 
-function movePupils(clientX, clientY){
+  function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
 
-  eyes.forEach((eye)=>{
+  function movePupilsTowardScreenPoint(x, y){
+    eyes.forEach(eye=>{
+      const pupil = eye.querySelector(".pupil");
+      const rect = eye.getBoundingClientRect();
+      const cx = rect.left + rect.width/2;
+      const cy = rect.top + rect.height/2;
 
-    const pupil = eye.querySelector(".pupil")
+      // direction from eye center to target point
+      const dx = x - cx;
+      const dy = y - cy;
 
-    const rect = eye.getBoundingClientRect()
+      // limit how far pupil can move
+      const maxDist = rect.width * 0.20;
 
-    const eyeCenterX = rect.left + rect.width/2
-    const eyeCenterY = rect.top + rect.height/2
+      // normalize direction
+      const len = Math.hypot(dx, dy) || 1;
+      const ux = dx / len;
+      const uy = dy / len;
 
-    const dx = clientX - eyeCenterX
-    const dy = clientY - eyeCenterY
-
-    const angle = Math.atan2(dy,dx)
-
-    const distance = rect.width * 0.18
-
-    const x = Math.cos(angle) * distance
-    const y = Math.sin(angle) * distance
-
-    pupil.style.transform = `translate(${x}px, ${y}px)`
-
-  })
-
-}
-
-
-window.addEventListener("mousemove",(e)=>{
-  movePupils(e.clientX,e.clientY)
-})
-
-
-window.addEventListener("touchmove",(e)=>{
-  const touch = e.touches[0]
-  movePupils(touch.clientX,touch.clientY)
-})
-
-window.addEventListener("touchstart",(e)=>{
-  const touch = e.touches[0]
-  movePupils(touch.clientX,touch.clientY)
-})
-
-</script>
-
-</body>
-</html>
-<script>
-function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
-
-function moveByNormalized(nx, ny){
-  // nx, ny in range [-1, 1]
-  eyes.forEach((eye)=>{
-    const pupil = eye.querySelector(".pupil");
-    const rect = eye.getBoundingClientRect();
-    const distance = rect.width * 0.18;
-    const x = clamp(nx, -1, 1) * distance;
-    const y = clamp(ny, -1, 1) * distance;
-    pupil.style.transform = `translate(${x}px, ${y}px)`;
-  });
-}
-
-// iOS requires permission for motion sensors sometimes
-async function enableMotion(){
-  if (typeof DeviceOrientationEvent !== "undefined" &&
-      typeof DeviceOrientationEvent.requestPermission === "function") {
-    const res = await DeviceOrientationEvent.requestPermission();
-    if (res !== "granted") return;
+      pupil.style.transform = `translate(${ux * maxDist}px, ${uy * maxDist}px)`;
+    });
   }
 
-  window.addEventListener("deviceorientation", (e)=>{
-    // gamma: left/right tilt (-90..90)
-    // beta: front/back tilt (-180..180)
-    const nx = (e.gamma ?? 0) / 45;  // normalize
-    const ny = (e.beta ?? 0) / 45;
-    moveByNormalized(nx, ny);
-  });
-}
+  async function startCamera(){
+    try{
+      setStatus("requesting camera…");
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false
+      });
+      video.srcObject = stream;
+      await video.play();
+      setStatus("camera on");
 
-// Tap anywhere once to enable motion on iOS
-window.addEventListener("click", enableMotion, { once: true });
-window.addEventListener("touchstart", enableMotion, { once: true });
+      if (!("FaceDetector" in window)){
+        setStatus("FaceDetector unsupported (need fallback)");
+        // Still let pupils follow center so it doesn’t look dead
+        movePupilsTowardScreenPoint(window.innerWidth/2, window.innerHeight/2);
+        return;
+      }
+
+      const detector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+      setStatus("tracking… (FaceDetector)");
+
+      // We map face box center from video coords -> screen coords.
+      // This works because the video is not displayed; we treat it as a “sensor”.
+      async function tick(){
+        try{
+          const faces = await detector.detect(video);
+          if (faces && faces.length){
+            const box = faces[0].boundingBox; // DOMRectReadOnly
+            const fx = box.x + box.width/2;   // in video pixel space
+            const fy = box.y + box.height/2;
+
+            // Convert to normalized coordinates
+            const nx = fx / video.videoWidth;   // 0..1
+            const ny = fy / video.videoHeight;  // 0..1
+
+            // Map to screen point (mirror horizontally feels more natural)
+            const sx = (1 - nx) * window.innerWidth;
+            const sy = ny * window.innerHeight;
+
+            movePupilsTowardScreenPoint(sx, sy);
+          }
+        } catch (err){
+          // Some browsers throw during permission changes etc.
+        }
+        requestAnimationFrame(tick);
+      }
+      tick();
+
+    } catch (e){
+      setStatus("camera blocked / error");
+      console.error(e);
+    }
+  }
+
+  startBtn.addEventListener("click", startCamera);
+
+  // Nice: if user moves mouse, still responds (desktop demo)
+  window.addEventListener("mousemove", (e)=> movePupilsTowardScreenPoint(e.clientX, e.clientY));
+  window.addEventListener("touchmove", (e)=>{
+    const t = e.touches[0];
+    if (t) movePupilsTowardScreenPoint(t.clientX, t.clientY);
+  }, { passive:true });
+
+  setStatus("idle");
 </script>
+</body>
+</html>
