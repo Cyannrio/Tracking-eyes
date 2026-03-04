@@ -60,6 +60,12 @@ async function startCamera(){
 
   video.srcObject = stream;
 
+video.muted = true;
+video.playsInline = true;
+video.setAttribute("playsinline", "");
+video.setAttribute("muted", "");
+video.setAttribute("autoplay", "");
+
   // iOS Safari sometimes needs a tiny delay before play()
   await new Promise(r => setTimeout(r, 120));
   await video.play();
@@ -81,8 +87,9 @@ function estimateAndUpdate(){
     const nx = MIRROR_X ? (1 - nose.x) : nose.x;
 
     // Map directly to the screen
-    const vx = nx * window.innerWidth;
-    const vy = nose.y * window.innerHeight;
+   const stage = document.querySelector(".stage").getBoundingClientRect();
+   const vx = stage.left + nx * stage.width;
+   const vy = stage.top  + nose.y * stage.height;
 
     movePupilsToward(vx, vy);
     setStatus("");
