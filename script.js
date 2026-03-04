@@ -74,7 +74,7 @@ function estimateAndUpdate(){
     const lm = result.faceLandmarks[0];
     const nose = lm[1]; // works well enough; if not, we can swap index
 
-    const vx = nose.x * window.innerWidth;
+    const vx = (1 - nose.x) * window.innerWidth;
     const vy = nose.y * window.innerHeight;
 
     movePupilsToward(vx, vy);
