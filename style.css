@@ -1,66 +1,78 @@
-html, body {
-  margin: 0;
-  height: 100%;
-  background: #000;
+:root{
+  --bg:#000;
+  --eyeSize:180px;
+  --pupilSize:54px;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
 }
 
 .stage{
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:18px;
 }
 
 .eyes{
-  display: flex;
-  gap: 28px;
+  display:flex;
+  gap:28px;
 }
 
+/* Eye socket */
 .eye{
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fff 0 45%, #bdbdbd 70%, #6b6b6b 100%);
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,.55);
+  width:var(--eyeSize);
+  height:var(--eyeSize);
+  border-radius:50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0%, #f2f2f2 55%, #d9d9d9 100%);
+  position:relative;             /* IMPORTANT */
+  overflow:hidden;
 }
 
+/* The pupil */
 .pupil{
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #555 0 20%, #000 55% 100%);
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%,-50%);
+  width:var(--pupilSize);
+  height:var(--pupilSize);
+  border-radius:50%;
+  background: radial-gradient(circle at 35% 30%, #444 0%, #111 45%, #000 100%);
+  position:absolute;             /* IMPORTANT */
+  left:50%;                      /* IMPORTANT */
+  top:50%;                       /* IMPORTANT */
+  transform: translate(-50%, -50%);
+  transition: transform 90ms linear;
 }
 
 #startBtn{
-  padding: 10px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.25);
-  background: rgba(255,255,255,.08);
-  color: #fff;
+  padding:10px 18px;
+  border-radius:12px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.22);
+  color:#fff;
+  font-size:16px;
 }
 
 #status{
-  color: rgba(255,255,255,.7);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  font-size: 14px;
-  text-align: center;
-  min-height: 18px;
+  color:rgba(255,255,255,.65);
+  font-size:14px;
+  min-height:18px;
 }
 
-/* hide camera preview but keep it running */
+/* hide camera feed but keep it functional */
 #video{
-  position: fixed;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
+  position:fixed;
+  left:-9999px;
+  top:-9999px;
+  width:320px;
+  height:240px;
+  opacity:0;
+  pointer-events:none;
 }
