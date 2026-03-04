@@ -4,35 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Eyes</title>
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  <!-- Hidden video for camera feed -->
-  <video id="video" playsinline muted autoplay></video>
-
-  <!-- The only thing visible -->
-  <div id="stage" aria-label="Eyes">
-    <div class="eye" id="eyeL">
-      <div class="iris"></div>
-      <div class="pupil"></div>
-      <div class="glint"></div>
-      <div class="lid"></div>
+  <div class="stage">
+    <div class="eyes">
+      <div class="eye"><div class="pupil"></div></div>
+      <div class="eye"><div class="pupil"></div></div>
     </div>
 
-    <div class="eye" id="eyeR">
-      <div class="iris"></div>
-      <div class="pupil"></div>
-      <div class="glint"></div>
-      <div class="lid"></div>
-    </div>
+    <button id="startBtn">Start</button>
+    <div id="status"></div>
   </div>
 
-  <!-- Tap required on iOS to allow camera -->
-  <button id="startBtn">Start Camera</button>
+  <!-- hidden camera -->
+  <video id="video" playsinline muted></video>
 
-  <div id="status" role="status">Tap “Start Camera”</div>
-
-  <script type="module" src="./script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
