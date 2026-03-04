@@ -2,31 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tracking Eyes (Camera)</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Eyes</title>
+  <link rel="stylesheet" href="./style.css" />
 </head>
+
 <body>
-  <main class="stage">
-    <div class="title">
-      <h1>Eyes Follow You</h1>
-      <p id="status">Tap “Start Camera” to begin.</p>
-      <button id="startBtn">Start Camera</button>
+  <!-- Hidden video for camera feed -->
+  <video id="video" playsinline muted autoplay></video>
+
+  <!-- The only thing visible -->
+  <div id="stage" aria-label="Eyes">
+    <div class="eye" id="eyeL">
+      <div class="iris"></div>
+      <div class="pupil"></div>
+      <div class="glint"></div>
+      <div class="lid"></div>
     </div>
 
-    <!-- Your eyes (you can style these to look less cartoony in CSS) -->
-    <div class="eyesWrap" aria-hidden="true">
-      <div class="eye" id="eyeL"><div class="pupil"></div><div class="gloss"></div></div>
-      <div class="eye" id="eyeR"><div class="pupil"></div><div class="gloss"></div></div>
+    <div class="eye" id="eyeR">
+      <div class="iris"></div>
+      <div class="pupil"></div>
+      <div class="glint"></div>
+      <div class="lid"></div>
     </div>
+  </div>
 
-    <!-- Hidden camera feed -->
-    <video id="cam" playsinline autoplay muted></video>
+  <!-- Tap required on iOS to allow camera -->
+  <button id="startBtn">Start Camera</button>
 
-    <!-- Optional: debugging overlay (kept hidden by default) -->
-    <canvas id="debug"></canvas>
-  </main>
+  <div id="status" role="status">Tap “Start Camera”</div>
 
-  <script type="module" src="script.js"></script>
+  <script type="module" src="./script.js"></script>
 </body>
 </html>
