@@ -93,18 +93,16 @@ function estimateAndUpdate(){
     const lm = result.faceLandmarks[0];
     const nose = lm[1];
 
-    const vr = video.getBoundingClientRect();
+/* flip this if the eyes look the wrong direction */
+const MIRROR_X = true;
 
-    /* flip this if the eyes look the wrong direction */
-    const MIRROR_X = true;
+const nx = MIRROR_X ? (1 - nose.x) : nose.x;
 
-    const nx = MIRROR_X ? (1 - nose.x) : nose.x;
+/* map directly to screen instead of video size */
+const vx = nx * window.innerWidth;
+const vy = nose.y * window.innerHeight;
 
-    const vx = vr.left + nx * vr.width;
-    const vy = vr.top + nose.y * vr.height;
-
-    movePupilsToward(vx,vy);
-
+movePupilsToward(vx, vy);
     setStatus("");
 
   } else {
