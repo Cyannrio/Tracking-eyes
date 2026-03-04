@@ -22,7 +22,7 @@ function movePupilsToward(screenX, screenY){
     const dx = screenX - cx;
     const dy = screenY - cy;
 
-    const max = r.width * 0.22;          // travel limit
+    const max = r.width * 0.12;          // travel limit
     const dist = Math.hypot(dx, dy) || 1;
 
     const amt = clamp(dist, 0, max);
