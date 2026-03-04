@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <title>Tracking Eyes</title>
+
 <style>
-body {
+body{
   margin:0;
   background:black;
   display:flex;
@@ -11,7 +13,8 @@ body {
   align-items:center;
   height:100vh;
 }
-.eye {
+
+.eye{
   width:200px;
   height:200px;
   background:white;
@@ -19,7 +22,8 @@ body {
   position:relative;
   margin:40px;
 }
-.pupil {
+
+.pupil{
   width:80px;
   height:80px;
   background:black;
@@ -27,26 +31,70 @@ body {
   position:absolute;
   top:60px;
   left:60px;
+  transition: transform 0.05s linear;
 }
 </style>
+
 </head>
 
 <body>
 
-<div class="eye"><div class="pupil" id="p1"></div></div>
-<div class="eye"><div class="pupil" id="p2"></div></div>
+<div class="eye">
+  <div class="pupil"></div>
+</div>
+
+<div class="eye">
+  <div class="pupil"></div>
+</div>
+
 
 <script>
-document.addEventListener("mousemove", function(e){
 
-  let x = e.clientX / window.innerWidth - 0.5
-  let y = e.clientY / window.innerHeight - 0.5
+const eyes = document.querySelectorAll(".eye")
 
-  document.querySelectorAll(".pupil").forEach(pupil => {
-    pupil.style.transform = "translate(" + x*60 + "px," + y*60 + "px)"
+function movePupils(clientX, clientY){
+
+  eyes.forEach((eye)=>{
+
+    const pupil = eye.querySelector(".pupil")
+
+    const rect = eye.getBoundingClientRect()
+
+    const eyeCenterX = rect.left + rect.width/2
+    const eyeCenterY = rect.top + rect.height/2
+
+    const dx = clientX - eyeCenterX
+    const dy = clientY - eyeCenterY
+
+    const angle = Math.atan2(dy,dx)
+
+    const distance = rect.width * 0.18
+
+    const x = Math.cos(angle) * distance
+    const y = Math.sin(angle) * distance
+
+    pupil.style.transform = `translate(${x}px, ${y}px)`
+
   })
 
+}
+
+
+window.addEventListener("mousemove",(e)=>{
+  movePupils(e.clientX,e.clientY)
 })
+
+
+window.addEventListener("touchmove",(e)=>{
+  const touch = e.touches[0]
+  movePupils(touch.clientX,touch.clientY)
+})
+
+window.addEventListener("touchstart",(e)=>{
+  const touch = e.touches[0]
+  movePupils(touch.clientX,touch.clientY)
+})
+
 </script>
 
 </body>
