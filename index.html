@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tracking Eyes</title>
+<style>
+body {
+  margin:0;
+  background:black;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.eye {
+  width:200px;
+  height:200px;
+  background:white;
+  border-radius:50%;
+  position:relative;
+  margin:40px;
+}
+.pupil {
+  width:80px;
+  height:80px;
+  background:black;
+  border-radius:50%;
+  position:absolute;
+  top:60px;
+  left:60px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="eye"><div class="pupil" id="p1"></div></div>
+<div class="eye"><div class="pupil" id="p2"></div></div>
+
+<script>
+document.addEventListener("mousemove", function(e){
+
+  let x = e.clientX / window.innerWidth - 0.5
+  let y = e.clientY / window.innerHeight - 0.5
+
+  document.querySelectorAll(".pupil").forEach(pupil => {
+    pupil.style.transform = "translate(" + x*60 + "px," + y*60 + "px)"
+  })
+
+})
+</script>
+
+</body>
+</html>
