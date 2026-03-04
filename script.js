@@ -1,172 +1,121 @@
-// Camera-based "eyes follow viewer" using TensorFlow.js + Face Landmarks Detection.
-// Works on GitHub Pages (https) and iOS Safari (needs camera permission).
+import * as tf from "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@4.20.0/+esm";
+import "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.20.0/+esm";
+import * as faceLandmarks from "https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@1.0.6/+esm";
 
+const video = document.getElementById("video");
 const statusEl = document.getElementById("status");
-const startBtn  = document.getElementById("startBtn");
-const video = document.getElementById("cam");
-const debugCanvas = document.getElementById("debug");
-const debugCtx = debugCanvas.getContext("2d", { willReadFrequently: false });
+const startBtn = document.getElementById("startBtn");
 
-const pupilL = document.querySelector("#eyeL .pupil");
-const pupilR = document.querySelector("#eyeR .pupil");
+const eyes = [
+  { el: document.querySelector("#eyeL .pupil"), eyeBox: document.getElementById("eyeL") },
+  { el: document.querySelector("#eyeR .pupil"), eyeBox: document.getElementById("eyeR") },
+];
 
-let detector = null;
-let rafId = null;
+// Max pupil travel (px)
+const MAX_TRAVEL = 26;
 
-function setStatus(msg){
-  statusEl.textContent = msg;
-}
+let model = null;
+let running = false;
 
-function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
 
-function resizeDebug(){
-  debugCanvas.width  = window.innerWidth  * devicePixelRatio;
-  debugCanvas.height = window.innerHeight * devicePixelRatio;
-}
-window.addEventListener("resize", resizeDebug);
-resizeDebug();
-
-async function loadModels(){
-  // ESM imports from CDN
-  const tf = await import("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/+esm");
-  const faceLandmarksDetection = await import("https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@1.0.5/+esm");
-
-  setStatus("Loading tracker…");
-
-  // Prefer WebGL for speed
-  try {
-    await tf.setBackend("webgl");
-  } catch (e) {
-    // fallback is okay
+function setPupil(dx, dy){
+  dx = clamp(dx, -MAX_TRAVEL, MAX_TRAVEL);
+  dy = clamp(dy, -MAX_TRAVEL, MAX_TRAVEL);
+  for (const e of eyes){
+    e.el.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
   }
+}
+
+async function setupCamera(){
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user" },
+    audio: false
+  });
+  video.srcObject = stream;
+  await new Promise(res => video.onloadedmetadata = res);
+  await video.play();
+}
+
+async function loadModel(){
+  await tf.setBackend("webgl");
   await tf.ready();
 
-  detector = await faceLandmarksDetection.createDetector(
-    faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
+  model = await faceLandmarks.createDetector(
+    faceLandmarks.SupportedModels.MediaPipeFaceMesh,
     {
       runtime: "tfjs",
-      refineLandmarks: true, // enables iris landmarks on many devices
+      refineLandmarks: true,
       maxFaces: 1
     }
   );
-
-  setStatus("Tracker loaded. Starting camera…");
 }
 
-async function startCamera(){
-  // Front camera
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: false,
-    video: {
-      facingMode: "user",
-      width: { ideal: 640 },
-      height: { ideal: 480 }
-    }
-  });
+function getFaceCenter(keypoints){
+  // Use nose tip-ish landmark if available; fall back to average of keypoints
+  // MediaPipe keypoints include names sometimes; tfjs version gives array with x,y
+  // We'll take a stable point: midpoint between left and right eye centers using indices.
+  // Indices: 33 (left eye outer), 263 (right eye outer) are common in FaceMesh.
+  const left = keypoints[33];
+  const right = keypoints[263];
+  if (left && right){
+    return { x: (left.x + right.x) / 2, y: (left.y + right.y) / 2 };
+  }
 
-  video.srcObject = stream;
-  await video.play();
-
-  setStatus("Camera on. Tracking…");
-}
-
-function movePupilsFromFace(faceXNorm, faceYNorm){
-  // faceXNorm/faceYNorm range ~ [-1, 1] (0 is center)
-  const root = getComputedStyle(document.documentElement);
-  const maxMove = parseFloat(root.getPropertyValue("--pupilMax")) || 34;
-
-  // Map: left/right & up/down
-  const x = clamp(faceXNorm, -1, 1) * maxMove;
-  const y = clamp(faceYNorm, -1, 1) * maxMove;
-
-  pupilL.style.transform = `translate(${x}px, ${y}px)`;
-  pupilR.style.transform = `translate(${x}px, ${y}px)`;
-}
-
-function drawDebug(face){
-  // Keep hidden by default in CSS; turn on opacity if you want.
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  debugCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-  debugCtx.clearRect(0,0,w,h);
-
-  if (!face) return;
-
-  // Draw a dot where we think the face center is (approx)
-  debugCtx.fillStyle = "rgba(255,255,255,.9)";
-  debugCtx.beginPath();
-  debugCtx.arc(w/2 + face.dx*(w/2), h/2 + face.dy*(h/2), 6, 0, Math.PI*2);
-  debugCtx.fill();
+  let sx=0, sy=0;
+  for (const p of keypoints){ sx += p.x; sy += p.y; }
+  return { x: sx/keypoints.length, y: sy/keypoints.length };
 }
 
 async function loop(){
-  if (!detector || video.readyState < 2){
-    rafId = requestAnimationFrame(loop);
-    return;
-  }
+  if (!running) return;
 
-  // Estimate faces from the video
-  const faces = await detector.estimateFaces(video, { flipHorizontal: true });
+  try{
+    const faces = await model.estimateFaces(video, { flipHorizontal: true });
 
-  if (!faces || faces.length === 0){
-    // If no face detected, relax to center
-    movePupilsFromFace(0, 0);
-    drawDebug(null);
-    rafId = requestAnimationFrame(loop);
-    return;
-  }
+    if (!faces || faces.length === 0){
+      statusEl.textContent = "No face found (more light / face in frame)";
+      setPupil(0, 0);
+    } else {
+      const kp = faces[0].keypoints;
+      const c = getFaceCenter(kp);
 
-  const face = faces[0];
+      // Map face center position to pupil travel
+      const nx = (c.x / video.videoWidth) * 2 - 1;   // -1..1
+      const ny = (c.y / video.videoHeight) * 2 - 1;  // -1..1
 
-  // We use the face bounding box center as "where the viewer is"
-  // bbox is in pixels of the video frame
-  const box = face.box; // {xMin, xMax, yMin, yMax, width, height}
-  const cx = box.xMin + box.width  / 2;
-  const cy = box.yMin + box.height / 2;
+      // Invert a bit so it feels like "watching you"
+      const dx = clamp(nx * MAX_TRAVEL, -MAX_TRAVEL, MAX_TRAVEL);
+      const dy = clamp(ny * MAX_TRAVEL, -MAX_TRAVEL, MAX_TRAVEL);
 
-  // Normalize relative to video center into [-1, 1]
-  // flipHorizontal=true already, so direction feels natural
-  const dx = (cx - video.videoWidth  / 2) / (video.videoWidth  / 2);
-  const dy = (cy - video.videoHeight / 2) / (video.videoHeight / 2);
-
-  // Small smoothing to prevent jitter
-  const smooth = 0.35;
-  loop.prevDx = loop.prevDx ?? dx;
-  loop.prevDy = loop.prevDy ?? dy;
-  const sdx = loop.prevDx + (dx - loop.prevDx) * smooth;
-  const sdy = loop.prevDy + (dy - loop.prevDy) * smooth;
-  loop.prevDx = sdx;
-  loop.prevDy = sdy;
-
-  movePupilsFromFace(sdx, sdy);
-  drawDebug({ dx: sdx, dy: sdy });
-
-  rafId = requestAnimationFrame(loop);
-}
-
-async function main(){
-  if (!("mediaDevices" in navigator) || !navigator.mediaDevices.getUserMedia){
-    setStatus("Camera not available in this browser.");
-    startBtn.disabled = true;
-    return;
-  }
-
-  startBtn.addEventListener("click", async () => {
-    try{
-      startBtn.disabled = true;
-      setStatus("Preparing…");
-
-      await loadModels();
-      await startCamera();
-
-      cancelAnimationFrame(rafId);
-      loop();
-    } catch (err){
-      console.error(err);
-      setStatus("Couldn’t start. Check camera permissions + reload.");
-      startBtn.disabled = false;
+      setPupil(dx, dy);
+      statusEl.textContent = "Tracking…";
     }
-  });
+  } catch (err){
+    console.error(err);
+    statusEl.textContent = "Tracking error (try reload)";
+  }
+
+  requestAnimationFrame(loop);
 }
 
-main();
+startBtn.addEventListener("click", async () => {
+  try{
+    startBtn.disabled = true;
+    statusEl.textContent = "Starting camera…";
+
+    await setupCamera();
+
+    statusEl.textContent = "Loading model… (first time can be slow)";
+    await loadModel();
+
+    running = true;
+    startBtn.style.display = "none";
+    statusEl.textContent = "Tracking…";
+    loop();
+  } catch (e){
+    console.error(e);
+    statusEl.textContent = "Camera blocked / not supported";
+    startBtn.disabled = false;
+  }
+});
