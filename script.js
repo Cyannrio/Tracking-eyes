@@ -20,16 +20,15 @@ function movePupilsToward(screenX, screenY){
     const cy = r.top + r.height/2;
 
     const dx = screenX - cx;
-    const dy = screenY - cy;
+const dy = screenY - cy;
 
-    const max = r.width * 0.09;          // travel limit
-    const dist = Math.hypot(dx, dy) || 1;
+/* horizontal movement dominates */
+const nx = clamp(dx * 0.25, -r.width * 0.12, r.width * 0.12);
 
-    const amt = clamp(dist, 0, max);
-    const nx = (dx / dist) * amt;
-    const ny = (dy / dist) * amt * 0.6;
+/* vertical movement is smaller */
+const ny = clamp(dy * 0.15, -r.height * 0.08, r.height * 0.08);
 
-    p.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
+p.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
   });
 }
 
