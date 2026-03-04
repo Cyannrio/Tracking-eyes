@@ -13,23 +13,25 @@ function setStatus(msg){ statusEl.textContent = msg; }
 function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
 
 function movePupilsToward(screenX, screenY){
-  pupils.forEach((p, i) => {
-    const eye = eyes[i];
-    const r = eye.getBoundingClientRect();
-    const cx = r.left + r.width/2;
-    const cy = r.top + r.height/2;
 
-    const dx = screenX - cx;
-const dy = screenY - cy;
+  // use the midpoint between the two eyes as the "head direction"
+  const r1 = eyes[0].getBoundingClientRect();
+  const r2 = eyes[1].getBoundingClientRect();
 
-/* horizontal movement dominates */
-const nx = clamp(dx * 0.25, -r.width * 0.12, r.width * 0.12);
+  const cx = (r1.left + r1.width/2 + r2.left + r2.width/2) / 2;
+  const cy = (r1.top + r1.height/2 + r2.top + r2.height/2) / 2;
 
-/* vertical movement is smaller */
-const ny = clamp(dy * 0.15, -r.height * 0.08, r.height * 0.08);
+  const dx = screenX - cx;
+  const dy = screenY - cy;
 
-p.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
+  // shared gaze movement
+  const nx = clamp(dx * 0.25, -r1.width * 0.12, r1.width * 0.12);
+  const ny = clamp(dy * 0.15, -r1.height * 0.08, r1.height * 0.08);
+
+  pupils.forEach(p => {
+    p.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
   });
+
 }
 
 async function initModel(){
