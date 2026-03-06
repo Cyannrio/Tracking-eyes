@@ -13,33 +13,14 @@ body {
   text-align: center;
 }
 
-.eyes {
-  display: flex;
-  gap: 80px;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.eye {
-  width: 180px;
-  height: 180px;
+.eyesWrap {
   position: relative;
-  overflow: hidden;
-  background: transparent;
+  width: 320px;
+  height: 220px;
+  margin: 0 auto 20px auto;
 }
 
-.pupil {
-  width: 40px;
-  height: 40px;
-  background: black;
-  border-radius: 50%;
-  position: absolute;
-  left: 70px;
-  top: 70px;
-  z-index: 1;
-}
-
-.eyeOverlay {
+.eyesOverlay {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -49,6 +30,27 @@ body {
   z-index: 2;
 }
 
+.pupil {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #666, #111 55%, #000 100%);
+  z-index: 1;
+  transition: transform 0.18s ease-out;
+}
+
+/* base positions behind the two slits */
+#pupilLeft {
+  left: 88px;
+  top: 82px;
+}
+
+#pupilRight {
+  left: 202px;
+  top: 82px;
+}
+
 button {
   padding: 10px 20px;
   font-size: 16px;
@@ -56,6 +58,7 @@ button {
   border: none;
   border-radius: 6px;
   color: white;
+  cursor: pointer;
 }
 
 #status {
@@ -64,8 +67,13 @@ button {
   opacity: 0.7;
 }
 
+/* actually hide the camera */
 #video {
   position: fixed;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
   left: -9999px;
   top: -9999px;
 }
