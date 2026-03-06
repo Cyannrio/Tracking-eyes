@@ -15,8 +15,8 @@ body {
 
 .eyesWrap {
   position: relative;
-  width: 320px;
-  height: 220px;
+  width: 520px;
+  height: 280px;
   margin: 0 auto 20px auto;
 }
 
@@ -40,15 +40,15 @@ body {
   transition: transform 0.18s ease-out;
 }
 
-/* base positions behind the two slits */
+/* base position */
 #pupilLeft {
-  left: 95px;
-  top: 55px;
+  left: 31%;
+  top: 34%;
 }
 
 #pupilRight {
-  left: 270px;
-  top: 55px;
+  left: 64%;
+  top: 34%;
 }
 
 button {
