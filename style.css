@@ -1,8 +1,6 @@
-/* Page setup */
-
 body {
   margin: 0;
-  background: black;
+  background: #222;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -11,13 +9,9 @@ body {
   color: white;
 }
 
-/* Main container */
-
 .stage {
   text-align: center;
 }
-
-/* Eye container */
 
 .eyes {
   display: flex;
@@ -26,41 +20,35 @@ body {
   margin-bottom: 20px;
 }
 
-/* Each eye */
-
 .eye {
   width: 180px;
   height: 180px;
-  border-radius: 50%;
   position: relative;
   overflow: hidden;
+  background: red; /* TEMP so we can see the overlay */
 }
-
-/* Pupil */
 
 .pupil {
-  width: 50px;
-  height: 50px;
-  background: radial-gradient(circle at 30% 30%, #bbb, #444);
+  width: 40px;
+  height: 40px;
+  background: black;
   border-radius: 50%;
   position: absolute;
-  left: 65px;
-  top: 65px;
-  transition: transform 0.05s linear;
+  left: 70px;
+  top: 70px;
+  z-index: 1;
 }
-
-/* Eye overlay image */
 
 .eyeOverlay {
   position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  left: 0;
-  top: 0;
+  object-fit: contain;
   pointer-events: none;
+  z-index: 2;
+  border: 2px solid lime; /* TEMP so we can see where image is */
 }
-
-/* Start button */
 
 button {
   padding: 10px 20px;
@@ -69,14 +57,7 @@ button {
   border: none;
   border-radius: 6px;
   color: white;
-  cursor: pointer;
 }
-
-button:hover {
-  background: #666;
-}
-
-/* Status text */
 
 #status {
   margin-top: 10px;
