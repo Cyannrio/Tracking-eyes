@@ -4,109 +4,119 @@ const video = document.getElementById("video");
 const startBtn = document.getElementById("startBtn");
 const statusEl = document.getElementById("status");
 
-const pupils = [...document.querySelectorAll(".pupil")];
-const eyes = [...document.querySelectorAll(".eye")];
+const pupilLeft = document.getElementById("pupilLeft");
+const pupilRight = document.getElementById("pupilRight");
+const eyesWrap = document.querySelector(".eyesWrap");
 
 let faceLandmarker = null;
 let running = false;
 
-function clamp(v,min,max){
-return Math.max(min,Math.min(max,v));
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
 }
 
-function movePupilsToward(screenX,screenY){
+function movePupilsToward(screenX, screenY) {
+  const r = eyesWrap.getBoundingClientRect();
 
-const r1 = eyes[0].getBoundingClientRect();
-const r2 = eyes[1].getBoundingClientRect();
+  const centerX = r.left + r.width / 2;
+  const centerY = r.top + r.height / 2;
 
-const cx = (r1.left+r1.width/2+r2.left+r2.width/2)/2;
-const cy = (r1.top+r1.height/2+r2.top+r2.height/2)/2;
+  const dx = screenX - centerX;
+  const dy = screenY - centerY;
 
-const dx = screenX-cx;
-const dy = screenY-cy;
+  const offsetX = clamp(dx * 0.08, -16, 16);
+  const offsetY = clamp(dy * 0.05, -10, 10);
 
-const nx = clamp(dx*0.25,-r1.width*0.12,r1.width*0.12);
-const ny = clamp(dy*0.15,-r1.height*0.08,r1.height*0.08);
-
-pupils.forEach(p=>{
-p.style.transform=`translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
-});
-
+  pupilLeft.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+  pupilRight.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
 }
 
-async function initModel(){
+async function initModel() {
+  statusEl.textContent = "Loading tracker...";
 
-const vision = await FilesetResolver.forVisionTasks(
-"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
-);
+  const vision = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+  );
 
-faceLandmarker = await FaceLandmarker.createFromOptions(vision,{
-baseOptions:{
-modelAssetPath:
-"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-},
-runningMode:"VIDEO",
-numFaces:1
-});
+  faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath:
+        "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+    },
+    runningMode: "VIDEO",
+    numFaces: 1
+  });
 
-statusEl.textContent="Ready";
-
+  statusEl.textContent = "Ready.";
 }
 
-async function startCamera(){
+async function startCamera() {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user" },
+    audio: false
+  });
 
-const stream = await navigator.mediaDevices.getUserMedia({
-video:{facingMode:"user"},
-audio:false
-});
+  video.srcObject = stream;
+  video.muted = true;
+  video.playsInline = true;
+  video.setAttribute("playsinline", "");
+  video.setAttribute("muted", "");
+  video.setAttribute("autoplay", "");
 
-video.srcObject=stream;
+  await new Promise((resolve) => {
+    if (video.readyState >= 1) return resolve();
+    video.onloadedmetadata = () => resolve();
+  });
 
-await new Promise(r=>{
-if(video.readyState>=1)return r();
-video.onloadedmetadata=()=>r();
-});
-
-await video.play();
-
+  await video.play();
 }
 
-function estimateAndUpdate(){
+function estimateAndUpdate() {
+  if (!running) return;
 
-if(!running)return;
+  if (video.readyState < 2) {
+    requestAnimationFrame(estimateAndUpdate);
+    return;
+  }
 
-const now=performance.now();
-const result=faceLandmarker.detectForVideo(video,now);
+  const now = performance.now();
+  const result = faceLandmarker.detectForVideo(video, now);
 
-if(result.faceLandmarks && result.faceLandmarks.length){
+  if (result.faceLandmarks && result.faceLandmarks.length) {
+    const lm = result.faceLandmarks[0];
+    const nose = lm[4] || lm[1];
 
-const lm=result.faceLandmarks[0];
-const nose=lm[4] || lm[1];
+    const x = (1 - nose.x) * window.innerWidth;
+    const y = nose.y * window.innerHeight;
 
-const nx=(1-nose.x);
-const vx=nx*window.innerWidth;
-const vy=nose.y*window.innerHeight;
+    movePupilsToward(x, y);
+    statusEl.textContent = "";
+  } else {
+    statusEl.textContent = "No face found";
+  }
 
-movePupilsToward(vx,vy);
-
+  requestAnimationFrame(estimateAndUpdate);
 }
 
-requestAnimationFrame(estimateAndUpdate);
+startBtn.addEventListener("click", async () => {
+  try {
+    startBtn.disabled = true;
+    statusEl.textContent = "Starting...";
 
-}
+    if (!faceLandmarker) {
+      await initModel();
+    }
 
-startBtn.addEventListener("click",async()=>{
+    await startCamera();
 
-startBtn.disabled=true;
-
-if(!faceLandmarker)await initModel();
-
-await startCamera();
-
-running=true;
-
-estimateAndUpdate();
-
+    running = true;
+    statusEl.textContent = "Tracking...";
+    estimateAndUpdate();
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = "Camera failed";
+    startBtn.disabled = false;
+  }
 });
 
 initModel();
