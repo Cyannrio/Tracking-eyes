@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  background: #222;
+  background: black;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -25,7 +25,7 @@ body {
   height: 180px;
   position: relative;
   overflow: hidden;
-  background: red; /* TEMP so we can see the overlay */
+  background: transparent;
 }
 
 .pupil {
@@ -47,7 +47,6 @@ body {
   object-fit: contain;
   pointer-events: none;
   z-index: 2;
-  border: 2px solid lime; /* TEMP so we can see where image is */
 }
 
 button {
@@ -63,4 +62,10 @@ button {
   margin-top: 10px;
   font-size: 14px;
   opacity: 0.7;
+}
+
+#video {
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
 }
