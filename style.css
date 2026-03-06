@@ -32,8 +32,8 @@ body {
 
 .pupil {
   position: absolute;
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background: radial-gradient(circle at center, black 28%, white 30%);
   z-index: 1;
