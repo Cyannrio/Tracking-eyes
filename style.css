@@ -35,21 +35,20 @@ body {
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  outline: 2px solid red;
-  background: radial-gradient(circle at center, black 28%, #f5efe9 30%);
+  background: radial-gradient(circle at center, black 28%, white 30%);
   z-index: 1;
   transition: transform 0.18s ease-out;
 }
 
 /* base positions behind the two slits */
 #pupilLeft {
-  left: 115px;
-  top: 120px;
+  left: 60px;
+  top: 132px;
 }
 
 #pupilRight {
-  left: 295px;
-  top: 120px;
+  left: 188px;
+  top: 132px;
 }
 
 button {
