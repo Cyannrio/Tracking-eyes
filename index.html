@@ -1,36 +1,26 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Eyes</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Eyes</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<div class="stage">
+  <div class="stage">
+    <div class="eyesWrap">
+      <div class="pupil" id="pupilLeft"></div>
+      <div class="pupil" id="pupilRight"></div>
+      <img class="eyesOverlay" src="eyes-overlay.png" alt="">
+    </div>
 
-<div class="eyes">
-  <div class="eye">
-    <div class="pupil"></div>
-    <img class="eyeOverlay" src="eye-overlay.png" alt="">
+    <button id="startBtn">Start</button>
+    <div id="status">Ready.</div>
   </div>
 
-  <div class="eye">
-    <div class="pupil"></div>
-    <img class="eyeOverlay" src="eye-overlay.png" alt="">
-  </div>
-</div>
+  <video id="video" playsinline muted autoplay></video>
 
-<button id="startBtn">Start</button>
-<div id="status"></div>
-
-</div>
-
-<video id="video" playsinline muted autoplay></video>
-
-<script type="module" src="script.js"></script>
-
+  <script type="module" src="script.js"></script>
 </body>
 </html>
