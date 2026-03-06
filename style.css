@@ -43,12 +43,12 @@ body {
 /* base positions behind the two slits */
 #pupilLeft {
   left: 95px;
-  top: 85px;
+  top: 55px;
 }
 
 #pupilRight {
   left: 270px;
-  top: 85px;
+  top: 55px;
 }
 
 button {
