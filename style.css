@@ -51,6 +51,25 @@ body {
   top: 34%;
 }
 
+.sclera{
+  position:absolute;
+  width:120px;
+  height:90px;
+  background:white;
+  border-radius:50%;
+  z-index:1;
+}
+
+#scleraLeft{
+  left:26%;
+  top:28%;
+}
+
+#scleraRight{
+  left:58%;
+  top:28%;
+}
+
 button {
   padding: 10px 20px;
   font-size: 16px;
