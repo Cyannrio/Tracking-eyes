@@ -42,8 +42,8 @@ body {
 }
 .pupil {
   position: absolute;
-  width: 70px;
-  height: 70px;
+  width: 67px;
+  height: 67px;
   border-radius: 50%;
   background: black;
   z-index: 2;
