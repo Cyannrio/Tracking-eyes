@@ -77,3 +77,19 @@ button {
   left: -9999px;
   top: -9999px;
 }
+
+#analysisText {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  transform: translateX(-50%);
+  z-index: 3;
+  color: rgba(255,255,255,0.85);
+  font-family: monospace;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 0 6px rgba(255,255,255,0.25);
+  pointer-events: none;
+}
