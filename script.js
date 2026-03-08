@@ -7,12 +7,51 @@ const statusEl = document.getElementById("status");
 const pupilLeft = document.getElementById("pupilLeft");
 const pupilRight = document.getElementById("pupilRight");
 const eyesWrap = document.querySelector(".eyesWrap");
+const analysisText = document.getElementById("analysisText");
 
 let faceLandmarker = null;
 let running = false;
+let phraseTimer = 0;
+let currentPhrase = "SUBJECT DETECTED";
+
+const phrases = [
+  "SUBJECT DETECTED",
+  "OBSERVATION ACTIVE",
+  "ANALYZING SUBJECT",
+  "VISUAL DATA CAPTURED",
+  "TRACKING ENABLED",
+  "IDENTITY NOT VERIFIED",
+  "SUBJECT MEMORY INCONSISTENT",
+  "PROFILE PARTIALLY FABRICATED",
+  "INTERPRETATION UNCERTAIN",
+  "DATA MAY BE INCORRECT",
+  "PERCEPTION MAY BE INCORRECT",
+  "SUBJECT APPEARS FAMILIAR",
+  "YOU HAVE BEEN SEEN BEFORE",
+  "SUBJECT HIDING SOMETHING",
+  "SUBJECT AWARE OF OBSERVATION",
+  "SUBJECT PRETENDING NOT TO NOTICE",
+  "LOOKING BACK",
+  "EYE CONTACT RECORDED",
+  "WATCHING BACK",
+  "SUBJECT WATCHING DEVICE",
+  "MYTH GENERATED",
+  "PROFILE UPDATED",
+  "STORY RECONSTRUCTED",
+  "MEMORY ALTERED",
+  "YOU WERE NOT EXPECTED",
+  "THIS FACE HAS BEEN SEEN BEFORE",
+  "SUBJECT SHOULD NOT BE HERE"
+];
 
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
+}
+
+function randomPhrase() {
+  const next = phrases[Math.floor(Math.random() * phrases.length)];
+  currentPhrase = next;
+  analysisText.textContent = next;
 }
 
 function movePupilsToward(screenX, screenY) {
@@ -91,8 +130,15 @@ function estimateAndUpdate() {
 
     movePupilsToward(x, y);
     statusEl.textContent = "";
+
+    // change phrase every ~2.5 seconds while a face is detected
+    if (now - phraseTimer > 2500) {
+      randomPhrase();
+      phraseTimer = now;
+    }
   } else {
     statusEl.textContent = "No face found";
+    analysisText.textContent = "NO SUBJECT DETECTED";
   }
 
   requestAnimationFrame(estimateAndUpdate);
@@ -110,6 +156,9 @@ startBtn.addEventListener("click", async () => {
     await startCamera();
 
     running = true;
+    phraseTimer = performance.now();
+    randomPhrase();
+
     statusEl.textContent = "Tracking...";
     estimateAndUpdate();
   } catch (err) {
