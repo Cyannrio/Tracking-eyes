@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  background: black;
+  background: white;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -49,25 +49,7 @@ body {
 #pupilRight {
   left: 60%;
   top: 34%;
-}
 
-.sclera{
-  position:absolute;
-  width:120px;
-  height:90px;
-  background:white;
-  border-radius:50%;
-  z-index:1;
-}
-
-#scleraLeft{
-  left:26%;
-  top:28%;
-}
-
-#scleraRight{
-  left:58%;
-  top:28%;
 }
 
 button {
