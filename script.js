@@ -137,7 +137,7 @@ function estimateAndUpdate() {
       phraseTimer = now;
     }
   } else {
-    statusEl.textContent = "No face found";
+    statusEl.textContent = "";
     analysisText.textContent = "NO SUBJECT DETECTED";
   }
 
