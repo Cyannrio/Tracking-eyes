@@ -85,6 +85,8 @@ async function initModel() {
     },
     runningMode: "VIDEO",
     numFaces: 1
+    minFaceDetectionConfidence: 0.3,
+  minTrackingConfidence: 0.3
   });
 
   statusEl.textContent = "Ready.";
@@ -122,7 +124,7 @@ function estimateAndUpdate() {
   const now = performance.now();
   const result = faceLandmarker.detectForVideo(video, now);
 
-  if (result.faceLandmarks && result.faceLandmarks.length) {
+  if (result.faceLandmarks && result.faceLandmarks.length > 0) {
     const lm = result.faceLandmarks[0];
     const nose = lm[4] || lm[1];
 
