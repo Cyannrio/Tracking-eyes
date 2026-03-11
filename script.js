@@ -13,6 +13,7 @@ let faceLandmarker = null;
 let running = false;
 let phraseTimer = 0;
 let currentPhrase = "SUBJECT DETECTED";
+let lastFaceSeenTime = 0;
 
 const phrases = [
   "SUBJECT DETECTED",
@@ -64,8 +65,9 @@ function movePupilsToward(screenX, screenY) {
   const dx = screenX - centerX;
   const dy = screenY - centerY;
 
-  const offsetX = clamp(dx * 0.08, -16, 16);
-  const offsetY = clamp(dy * 0.05, -10, 10);
+  // slightly reduced range so the eyes feel less wild
+  const offsetX = clamp(dx * 0.06, -12, 12);
+  const offsetY = clamp(dy * 0.04, -8, 8);
 
   pupilLeft.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
   pupilRight.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
@@ -84,9 +86,10 @@ async function initModel() {
         "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
     },
     runningMode: "VIDEO",
-    numFaces: 1
+    numFaces: 1,
     minFaceDetectionConfidence: 0.3,
-  minTrackingConfidence: 0.3
+    minFacePresenceConfidence: 0.3,
+    minTrackingConfidence: 0.3
   });
 
   statusEl.textContent = "Ready.";
@@ -94,7 +97,11 @@ async function initModel() {
 
 async function startCamera() {
   const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user" },
+    video: {
+      facingMode: "user",
+      width: { ideal: 1280 },
+      height: { ideal: 720 }
+    },
     audio: false
   });
 
@@ -133,15 +140,18 @@ function estimateAndUpdate() {
 
     movePupilsToward(x, y);
     statusEl.textContent = "";
+    lastFaceSeenTime = now;
 
-    // change phrase every ~2.5 seconds while a face is detected
     if (now - phraseTimer > 2500) {
       randomPhrase();
       phraseTimer = now;
     }
   } else {
-    statusEl.textContent = "";
-    analysisText.textContent = "NO SUBJECT DETECTED";
+    // don't instantly lose the face for tiny tracking dropouts
+    if (now - lastFaceSeenTime > 700) {
+      statusEl.textContent = "";
+      analysisText.textContent = "NO SUBJECT DETECTED";
+    }
   }
 
   requestAnimationFrame(estimateAndUpdate);
@@ -160,6 +170,7 @@ startBtn.addEventListener("click", async () => {
 
     running = true;
     phraseTimer = performance.now();
+    lastFaceSeenTime = performance.now();
     randomPhrase();
 
     statusEl.textContent = "Tracking...";
